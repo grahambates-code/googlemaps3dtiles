@@ -1,91 +1,141 @@
 import React, { useEffect } from 'react';
-import { Loader } from '@googlemaps/js-api-loader';
-import inject from './../Map/../Map/inject.glsl';
+import {Map3D} from "./map-3d";
 
-const GOOGLE_MAPS_API_KEY = 'AIzaSyCwmX_Ejr4hEyGDZfgBWPgLYzIqMhY1P3M';
+const createShaderInject = (longitude, latitude, edgeIntensityFactor, hatchDensity, smoothnessFactor, range) => `\
+  vec2 sf = vec2(${longitude}, ${latitude});
+  vec2 polar = 3.141592653589793 * sf / 180.0;
+  float R = 1.0;
+  vec3 xyz = vec3(
+    R * cos(polar.y) * cos(polar.x),
+    R * cos(polar.y) * sin(polar.x),
+    R * sin(polar.y)
+  );
+  vec3 posGround = normalize(posAtmo);
 
-const ShaderInjector = ({ children }) => {
+  // Store original color
+  vec3 originalColor = FragColor.rgb;
+
+  // Convert to black and white
+  float luminance = dot(originalColor, vec3(0.299, 0.587, 0.114));
+  vec3 bw = vec3(luminance);
+
+  // Edge detection using derivatives
+  vec3 dx = dFdx(originalColor);
+  vec3 dy = dFdy(originalColor);
+  float edgeIntensity = (length(dx) + length(dy)) * ${edgeIntensityFactor};
+
+  // Base black-and-white effect
+  FragColor.rgb = bw;
+
+  // Add edge darkening
+  FragColor.rgb *= (1.0 - edgeIntensity);
+
+  // Procedural hatching effect
+  float hatchPattern = sin(posGround.x * 50.0) * cos(posGround.y * 50.0);
+  FragColor.rgb *= 1.0 - (smoothstep(0.3, 0.7, hatchPattern) * 0.2);
+
+  // Fade to white outside
+  float range = ${range};
+  float d = distance(xyz, posGround) / range;
+  float f = smoothstep(0.8 * ${smoothnessFactor}, 1.2 * ${smoothnessFactor}, d);
+  FragColor.rgb = mix(FragColor.rgb, vec3(1.0), f);
+
+  // Soft white edge glow
+  //float edgeGlow = smoothstep(0.05 * ${smoothnessFactor}, 0.0, abs(d - 1.0));
+  //FragColor.rgb += vec3(1.0) * edgeGlow * 0.5;
+
+  // Add ink accumulation at edges
+  float inkEdge = smoothstep(0.3, 0.0, edgeIntensity) * (1.0 - f);
+  FragColor.rgb *= (1.0 + inkEdge * 0.5);
+`;
+
+
+
+
+const ShaderInjector = ({ viewProps, onCameraChange }) => {
     useEffect(() => {
-        const loader = new Loader({ apiKey: GOOGLE_MAPS_API_KEY, version: 'alpha' });
+        const inject = createShaderInject(
+            viewProps.center.lng,
+            viewProps.center.lat,
+            0.1, // edgeIntensityFactor
+            0.0, // hatchDensity
+            1.2, // smoothnessFactor
+            0.0010 // range
+        );
 
         const patchCanvas = (canvas) => {
-            if (!canvas || canvas._patched) return; // Avoid double patching
-            canvas._patched = true;
+            if (!canvas || canvas._patched) return;
+            console.log('Found new canvas to patch');
 
-            console.log('Patching canvas:', canvas);
-            canvas._getContext = canvas.getContext;
+            const originalGetContext = canvas.getContext;
+            canvas.getContext = function (type, options) {
+                const ctx = originalGetContext.call(this, type, options);
 
-            canvas.getContext = (type, options) => {
-                const ctx = canvas._getContext(type, options);
-
-                if (!ctx._shaderSource) {
-                    ctx._shaderSource = ctx.shaderSource;
-                    ctx.shaderSource = (shader, source) => {
-                        console.log('Shader create:', shader);
-                        let modifiedSource = source;
-
-                        if (source.includes('gl_Position')) {
-                            console.log('Skipping vertex shader');
-                        } else if (source.includes('computeInscatter')) {
-                            // SKYBOX
-                            if (
-                                source.includes(
-                                    'FragColor = computeInscatter(gl_FragCoord.xy, uExposureAndAtmoTweak.x)'
-                                )
-                            ) {
-                                console.log('Skybox shader found');
-                                // Customize as needed (e.g., apply inject.glsl logic)
+                if (ctx) {
+                    const originalShaderSource = ctx.shaderSource;
+                    ctx.shaderSource = function (shader, source) {
+                        try {
+                            if (source.includes('gl_Position')) {
+                                // Skip vertex shaders
+                                return originalShaderSource.call(this, shader, source);
                             }
 
-                            // GROUND
-                            if (source.includes('FragColor = vec4(color.rgb * color.a, color.a)')) {
-                                console.log('Ground shader found');
+                            let modifiedSource = source;
+
+                            console.log(source)
+                            if (source.includes('computeInscatter') && source.includes('FragColor')) {
+                                console.log('Injecting custom shader code');
                                 modifiedSource = source.slice(0, -1) + inject + '}';
                             }
-                        }
 
-                        ctx._shaderSource(shader, modifiedSource);
+                            return originalShaderSource.call(this, shader, modifiedSource);
+                        } catch (error) {
+                            console.error('Shader injection error:', error);
+                            return originalShaderSource.call(this, shader, source); // Fallback to original shader
+                        }
                     };
+
+                    ctx._isPatched = true;
                 }
 
                 return ctx;
             };
+            canvas._patched = true;
         };
 
-        const findCanvas = (element) => {
-            const keys = Object.keys(element);
-            return keys.map((k) => element[k] && element[k].getContext && element[k]).filter((v) => v)[0];
-        };
+        const findAndPatchCanvas = (element) => {
+            const canvas = Object.keys(element)
+                .map((key) => element[key])
+                .find((value) => value && value.getContext);
 
-        const originalAttachShadow = HTMLElement.prototype.attachShadow;
-        HTMLElement.prototype.attachShadow = function (options) {
-            const shadowRoot = originalAttachShadow.call(this, options);
-
-            const canvas = findCanvas(this);
-            if (canvas) patchCanvas(canvas);
-
-            return shadowRoot;
-        };
-
-        const init = async () => {
-            try {
-                const { Map3DElement } = await loader.importLibrary('maps3d');
-                console.log('Map3DElement loaded:', Map3DElement);
-                // Further initialization or camera handling can go here if needed.
-            } catch (error) {
-                console.error('Error initializing Map3DElement:', error);
+            if (canvas) {
+                patchCanvas(canvas);
             }
         };
 
-        init();
+        // Override shadow DOM attachment to patch shaders
+        const originalAttachShadow = HTMLElement.prototype.attachShadow;
+        HTMLElement.prototype.attachShadow = function (options) {
+            const shadowRoot = originalAttachShadow.call(this, options);
+            findAndPatchCanvas(this);
+            return shadowRoot;
+        };
 
         return () => {
-            // Cleanup: Restore original attachShadow
-            HTMLElement.prototype.attachShadow = originalAttachShadow;
+            HTMLElement.prototype.attachShadow = originalAttachShadow; // Restore original behavior
         };
-    }, []);
+    }, [viewProps]);
 
-    return <>{children}</>;
+    return (
+        <Map3D
+
+            {...viewProps}
+            onCameraChange={onCameraChange}
+            defaultLabelsDisabled
+            defaultUiDisabled
+
+        />
+    );
 };
 
 export default ShaderInjector;

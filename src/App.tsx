@@ -1,6 +1,14 @@
 import React from 'react';
 import { Box, Container, Grid, Text, VStack, Heading } from '@chakra-ui/react';
 import ReactMap from './ReactMap/app'
+import {APIProvider} from "@vis.gl/react-google-maps";
+import FadeOutWrapper from "./Frames/main.tsx";
+import RoughLines from "./Frames/rough.tsx";
+import SketchyMountain from "./Frames/mountain.tsx";
+import ScrollImagePanel from "./Frames/container.tsx";
+import MapRoute from "./Vanilla";
+import {Map3D} from "./ReactMap/map-3d";
+
 const MountainSVG = ({ viewBox = "0 0 400 200" }) => (
     <svg viewBox={viewBox} style={{ width: '100%', height: 'auto' }}>
         <path
@@ -43,16 +51,20 @@ const SmallHouseSVG = () => (
 
 
 const DesignLayout = () => {
+
+   // return    <Map3D/>
+    //return <ScrollImagePanel/>
     return (
         <Container  >
             {/* Main Mountain Illustration */}
             <Box>
 
-                <Box pos={'static'} width={'100%'} height={'200px'} >
-                    <ReactMap/>
-                </Box>
-               {/* <MountainSVG viewBox="0 0 400 200" />*/}
+                    {/*<SketchyMountain/>*/}
+
+                {/*<MountainSVG viewBox="0 0 400 150" />*/}
             </Box>
+
+
 
             {/* Three Column Text Section */}
             <Grid templateColumns={{ base: "1fr", md: "repeat(3, 1fr)" }} gap={8} mb={10}>
@@ -67,22 +79,52 @@ const DesignLayout = () => {
                 ))}
             </Grid>
 
+            {/*<APIProvider*/}
+            {/*    apiKey={"AIzaSyCwmX_Ejr4hEyGDZfgBWPgLYzIqMhY1P3M"} version={"alpha"} >*/}
+            {/*    <Box pos={'relative'} width={'1000px'} height={'1000px'} >*/}
+            {/*        <Map3D*/}
+            {/*            center={{ lat: 37.7749, lng: -122.4194, altitude: 1400 }}*/}
+            {/*            heading={25}*/}
+            {/*            tilt={45}*/}
+            {/*            range={2500}*/}
+            {/*        />*/}
+            {/*        /!*<FadeOutWrapper>*!/*/}
+            {/*        /!*    <Map3D/>*!/*/}
+            {/*        /!*</FadeOutWrapper>*!/*/}
+            {/*    </Box>*/}
+
+
+            {/*</APIProvider>*/}
+
             {/* Two Mountain Illustrations */}
-            <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={8} mb={10}>
+            <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} >
+
                 <Box>
-                    <Heading size="sm" mb={4}>LOPPY USS</Heading>
-                    <MountainSVG viewBox="0 0 400 200" />
-                    <Text fontSize="sm" mt={4} color="gray.600">
-                        Mountain description and details would go here.
-                    </Text>
+                    <RoughLines/>
                 </Box>
                 <Box>
-                    <Heading size="sm" mb={4}>LOPPY USS</Heading>
-                    <MountainSVG viewBox="0 0 400 200" />
-                    <Text fontSize="sm" mt={4} color="gray.600">
-                        Mountain description and details would go here.
-                    </Text>
+                    {/*<Heading size="sm" mb={4}>LOPPY USS</Heading>*/}
+                    {/*<MountainSVG viewBox="0 0 400 200" />*/}
+
+
+
+
+                    {/*<MapRoute/>*/}
+                   {/*<RoughLines/>*/}
+                    <APIProvider
+                        apiKey={"AIzaSyCwmX_Ejr4hEyGDZfgBWPgLYzIqMhY1P3M"} version={"alpha"} >
+                        <Box pos={'relative'} width={'100%'} height={'200vh'} >
+                            <FadeOutWrapper>
+                                <ReactMap view={{"center":{"lat":45.99391331065768,"lng":7.762488122787081,"altitude":2678.0628388326822},"range":7210.967245087959,"heading":151.36676143493665,"tilt":70.38352037662207,"roll":0}}/>
+                            </FadeOutWrapper>
+                        </Box>
+
+
+                    </APIProvider>
+
+
                 </Box>
+
             </Grid>
 
 

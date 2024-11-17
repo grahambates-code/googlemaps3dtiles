@@ -10,16 +10,19 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@chakra-ui/react": "^3.1.1",
+    "@chakra-ui/react": "2.10.4",
     "@deck.gl/core": "^9.0.0",
     "@deck.gl/google-maps": "^9.0.0",
     "@deck.gl/layers": "^9.0.0",
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
+    "@fontsource/caveat": "^5.1.0",
     "@googlemaps/js-api-loader": "^1.16.0",
     "@turf/turf": "^7.1.0",
+    "@types/google.maps": "^3.58.1",
     "@vis.gl/react-google-maps": "^1.4.0",
     "framer-motion": "^11.11.17",
+    "gsap": "^3.12.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "three": "^0.170.0"

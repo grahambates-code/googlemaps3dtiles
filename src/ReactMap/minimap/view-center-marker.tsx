@@ -1,5 +1,5 @@
 import React from 'react';
-import {AdvancedMarker} from '@vis.gl/react-google-maps';
+import {AdvancedMarker, } from '@vis.gl/react-google-maps';
 
 import './view-center-marker.css';
 

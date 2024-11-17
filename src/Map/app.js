@@ -59,8 +59,8 @@ const ShaderInjector = ({ children }) => {
 
     const init = async () => {
       try {
-        const { Map3DElement } = await loader.importLibrary("maps3d");
-        console.log("Google Maps 3D API loaded");
+        //const { Map3DElement } = await loader.importLibrary("maps3d");
+        //console.log("Google Maps 3D API loaded");
 
         // Patch all canvases after library loads
         const canvases = document.querySelectorAll("gmp-map-3d canvas");

@@ -7,36 +7,7 @@
   max-width: 600px;
   font-size: 0.875em;
   border-radius: 10px;
-}
-
-.no-focus-outline {
-  outline: none !important;
-  border: none !important;
-}
-
-.no-focus-outline:focus,
-.no-focus-outline:focus-visible {
-  outline: none !important;
-  border: none !important;
-  box-shadow: none !important;
+  display: none;
 }
 
 
-.rightmap {
-  position: relative;
-  bottom: 0;
-  right: 0;
-  height: 100%;
-  width: 100%;
-  overflow: hidden; /* Ensures blur effect stays within bounds */
-}
-
-
-
-
-.rightmap:focus,
-.rightmap:focus-visible {
-  outline: none !important;
-  box-shadow: none !important;
-  border: none !important;
-}
