@@ -1,16 +1,13 @@
-import React from 'react';
-import { Box, Container, Grid, Text, VStack, Heading } from '@chakra-ui/react';
-import ReactMap from './ReactMap/app'
-import {APIProvider} from "@vis.gl/react-google-maps";
+import React, { useState } from 'react';
+import { Box, Button, Textarea } from '@chakra-ui/react';
+
+import Map3DWithShaders from "./ReactMap/shader_injector.tsx";
 import FadeOutWrapper from "./Frames/main.tsx";
-import RoughLines from "./Frames/rough.tsx";
-import SketchyMountain from "./Frames/mountain.tsx";
-import ScrollImagePanel from "./Frames/container.tsx";
-import MapRoute from "./Vanilla";
-import {Map3D} from "./ReactMap/map-3d";
+import RoughBox from "./Frames/rough.tsx";
+import {RoughNotation} from "react-rough-notation";
 
 const MountainSVG = ({ viewBox = "0 0 400 200" }) => (
-    <svg viewBox={viewBox} style={{ width: '100%', height: 'auto' }}>
+    <svg viewBox={viewBox} style={{ width: '100%', height: '100px' }}>
         <path
             d="M20,180 L140,60 L180,90 L280,40 L380,180"
             fill="none"
@@ -32,103 +29,103 @@ const MountainSVG = ({ viewBox = "0 0 400 200" }) => (
     </svg>
 );
 
-const SmallHouseSVG = () => (
-    <svg viewBox="0 0 100 50" style={{ width: '100px', height: 'auto' }}>
-        <path
-            d="M10,40 L10,25 L25,15 L40,25 L40,40 Z"
-            fill="none"
-            stroke="black"
-            strokeWidth="1"
-        />
-        <path
-            d="M50,40 L50,25 L65,15 L80,25 L80,40 Z"
-            fill="none"
-            stroke="black"
-            strokeWidth="1"
-        />
-    </svg>
-);
-
-
 const DesignLayout = () => {
+    const [viewState, setViewState] = useState({
+        center: { lat: 37.7749, lng: -122.4194, altitude: 400 },
+        tilt: 60,
+        heading: 90,
+        range: 13000,
+    });
 
-   // return    <Map3D/>
-    //return <ScrollImagePanel/>
+    const handleCopy = () => {
+        navigator.clipboard.writeText(JSON.stringify(viewState, null, 2));
+    };
+
+    const handlePaste = (event) => {
+        try {
+            const newState = JSON.parse(event.target.value);
+            setViewState(newState);
+        } catch (e) {
+            console.error("Invalid JSON:", e);
+        }
+    };
+
     return (
-        <Container  >
-            {/* Main Mountain Illustration */}
-            <Box>
-
-                    {/*<SketchyMountain/>*/}
-
-                {/*<MountainSVG viewBox="0 0 400 150" />*/}
+        <Box>
+            <Box zIndex="99999999" pos={'fixed'} right={0} top={0}>
+                {/*<MountainSVG />*/}
             </Box>
 
+            {/*<Box pos="fixed" zIndex="99999999" p={4} left={0} top={0} backgroundColor="white" boxShadow="lg">*/}
+            {/*    <Textarea*/}
+            {/*        value={JSON.stringify(viewState, null, 2)}*/}
+            {/*        onChange={handlePaste}*/}
+            {/*        rows={10}*/}
+            {/*        placeholder="View State JSON"*/}
+            {/*    />*/}
+            {/*    <Button mt={2} onClick={handleCopy}>*/}
+            {/*        Copy View State*/}
+            {/*    </Button>*/}
+            {/*</Box>*/}
+
+            <Box width={'100vw'} height={'400vh'} pointerEvents={'all'}>
 
 
-            {/* Three Column Text Section */}
-            <Grid templateColumns={{ base: "1fr", md: "repeat(3, 1fr)" }} gap={8} mb={10}>
-                {["COLUMN ONE", "COLUMN TWO", "COLUMN THREE"].map((title, i) => (
-                    <VStack key={i} align="stretch" spacing={4}>
-                        <Heading size="sm">{title}</Heading>
-                        <Text fontSize="sm" color="gray.600">
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                            Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                        </Text>
-                    </VStack>
-                ))}
-            </Grid>
-
-            {/*<APIProvider*/}
-            {/*    apiKey={"AIzaSyCwmX_Ejr4hEyGDZfgBWPgLYzIqMhY1P3M"} version={"alpha"} >*/}
-            {/*    <Box pos={'relative'} width={'1000px'} height={'1000px'} >*/}
-            {/*        <Map3D*/}
-            {/*            center={{ lat: 37.7749, lng: -122.4194, altitude: 1400 }}*/}
-            {/*            heading={25}*/}
-            {/*            tilt={45}*/}
-            {/*            range={2500}*/}
-            {/*        />*/}
-            {/*        /!*<FadeOutWrapper>*!/*/}
-            {/*        /!*    <Map3D/>*!/*/}
-            {/*        /!*</FadeOutWrapper>*!/*/}
-            {/*    </Box>*/}
-
-
-            {/*</APIProvider>*/}
-
-            {/* Two Mountain Illustrations */}
-            <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} >
-
-                <Box>
-                    <RoughLines/>
-                </Box>
-                <Box>
-                    {/*<Heading size="sm" mb={4}>LOPPY USS</Heading>*/}
-                    {/*<MountainSVG viewBox="0 0 400 200" />*/}
+                <FadeOutWrapper>
 
 
 
+                    <Map3DWithShaders
+                        center={viewState.center}
+                        tilt={viewState.tilt}
+                        heading={viewState.heading}
+                        range={viewState.range}
+                        polylineCoordinates={[
+                            { lat: 37.7749, lng: -122.4194, altitude: 400 },
+                            { lat: 37.7849, lng: -122.4294, altitude: 500 },
+                            { lat: 37.7949, lng: -122.4394, altitude: 600 },
+                        ]}
+                        onViewStateChange={setViewState} // Callback for view state updates
+                    />
 
-                    {/*<MapRoute/>*/}
-                   {/*<RoughLines/>*/}
-                    <APIProvider
-                        apiKey={"AIzaSyCwmX_Ejr4hEyGDZfgBWPgLYzIqMhY1P3M"} version={"alpha"} >
-                        <Box pos={'relative'} width={'100%'} height={'200vh'} >
-                            <FadeOutWrapper>
-                                <ReactMap view={{"center":{"lat":45.99391331065768,"lng":7.762488122787081,"altitude":2678.0628388326822},"range":7210.967245087959,"heading":151.36676143493665,"tilt":70.38352037662207,"roll":0}}/>
-                            </FadeOutWrapper>
+                    <Box pos={'absolute'} top={'0%'} right={'0%'} zIndex={9999999999} width={'40%'} height={'100vh'}>
+                        <RoughBox text={"Yellow Run"} subtext={'New to the slopes? This one is for you.'}/>
+
+                        <Box
+                            position="absolute"
+                            bottom="5%"
+                            left="50%"
+                            width={"70%"}
+                            transform="translate(-50%, -50%)"
+                            textAlign="center"
+                        >
+                        <RoughNotation
+                            type="circle"
+                            color="rgba(0, 0, 200, 0.2)"
+                            show={true}
+                        >
+                            <div
+                                style={{
+
+                                    fontSize: `${48}px`,
+                                    fontFamily: "'Amatic SC', cursive", // Ensure this
+
+                                    color: "blackAlpha.300",
+                                }}
+                            >&nbsp;&nbsp;Scroll for more&nbsp;&nbsp;</div>
+                        </RoughNotation>
                         </Box>
 
 
-                    </APIProvider>
+                    </Box>
 
 
-                </Box>
-
-            </Grid>
 
 
-        </Container>
+
+                </FadeOutWrapper>
+            </Box>
+        </Box>
     );
 };
 

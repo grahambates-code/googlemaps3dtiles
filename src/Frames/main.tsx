@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Box, Slider, SliderTrack, SliderFilledTrack, SliderThumb, Text } from "@chakra-ui/react";
 
-const FadeOutWrapper = ({ children, height = "100vh" }) => {
-    const [fadeWidth, setFadeWidth] = useState(60); // Default fade width in %
+const FadeOutWrapper = ({ children, height = "100%" }) => {
+    const [fadeWidth, setFadeWidth] = useState(100); // Default fade width in %
 
     const handleSliderChange = (value) => {
         setFadeWidth(value);
@@ -21,10 +21,11 @@ const FadeOutWrapper = ({ children, height = "100vh" }) => {
                 top="0"
                 right="0"
                 bottom="0"
+
                 width={`${fadeWidth}%`}
                 pointerEvents="none"
                 style={{
-                    background: "linear-gradient(to left, rgba(255,255,255,1), rgba(255,255,255,0))",
+                    background: "linear-gradient(to left, rgba(255,255,255,1) 15%, rgba(255,255,255,0) 80%)",
                 }}
             ></Box>
 

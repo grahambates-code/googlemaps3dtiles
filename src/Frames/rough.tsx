@@ -1,94 +1,57 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
     Box,
-    Slider,
-    SliderTrack,
-    SliderFilledTrack,
-    SliderThumb,
-    Text,
-    VStack,
+    Select,
     FormLabel,
     ButtonGroup,
     Button,
 } from "@chakra-ui/react";
-import "@fontsource/caveat"; // Hand-drawn font
+import { RoughNotation } from "react-rough-notation";
+import '@fontsource/amatic-sc';
 
-const PRESETS = {
-    default: {
-        name: "Default",
-        lineCount: 2,
-        offset: 12,
-        opacity: 0.2,
-        roughness: 0.02,
-        displacement: 2,
-        strokeWidth: 2,
-    },
-    softPencil: {
-        name: "Soft Pencil",
-        lineCount: 5,
-        offset: 10,
-        opacity: 0.5,
-        roughness: 0.01,
-        displacement: 1.5,
-        strokeWidth: 1.5,
-    },
-    sharpPen: {
-        name: "Sharp Pen",
-        lineCount: 3,
-        offset: 5,
-        opacity: 0.8,
-        roughness: 0.03,
-        displacement: 3,
-        strokeWidth: 1,
-    },
-    roughSketch: {
-        name: "Rough Sketch",
-        lineCount: 6,
-        offset: 15,
-        opacity: 0.4,
-        roughness: 0.05,
-        displacement: 4,
-        strokeWidth: 2.5,
-    },
-};
 
 const RoughBox = ({
-                      width = 400,
-                      height = 400,
-                      text = "Red Run",
-                      subtext = "Intermediate Ski Route",
-                      difficulty = 3,
+                      text = "New Title",
+                      subtext = "Write here",
+                      difficulty = 1,
+                      cost = 2,
                   }) => {
-    // State for customization
-    const [lineCount, setLineCount] = useState(PRESETS.default.lineCount);
-    const [offset, setOffset] = useState(PRESETS.default.offset);
-    const [strokeWidth, setStrokeWidth] = useState(PRESETS.default.strokeWidth);
-    const [opacity, setOpacity] = useState(PRESETS.default.opacity);
-    const [roughness, setRoughness] = useState(PRESETS.default.roughness);
-    const [displacement, setDisplacement] = useState(PRESETS.default.displacement);
-    const [fontSize, setFontSize] = useState(24); // Font size state
-    const [shapeSize, setShapeSize] = useState(15); // Difficulty shape size
-    const [showSliders, setShowSliders] = useState(false); // Toggle slider visibility
+    const containerRef = useRef(null);
+    const [width, setWidth] = useState(700); // Default width
+    const [height, setHeight] = useState(400); // Default height
 
-    // Apply a preset
-    const applyPreset = (presetName) => {
-        const preset = PRESETS[presetName];
-        setLineCount(preset.lineCount);
-        setOffset(preset.offset);
-        setStrokeWidth(preset.strokeWidth);
-        setOpacity(preset.opacity);
-        setRoughness(preset.roughness);
-        setDisplacement(preset.displacement);
-    };
+    const [lineCount, setLineCount] = useState(2);
+    const [offset, setOffset] = useState(6); // Reduced randomness
+    const [strokeWidth, setStrokeWidth] = useState(2);
+    const [opacity, setOpacity] = useState(0.3);
+    const [roughness, setRoughness] = useState(0.01); // Reduced noise roughness
+    const [displacement, setDisplacement] = useState(1.5); // Reduced displacement
+    const [fontSize, setFontSize] = useState(72);
+    const [showAnnotations, setShowAnnotations] = useState(true);
+    const [difficultyRepresentation, setDifficultyRepresentation] = useState("!");
+    const [costRepresentation, setCostRepresentation] = useState("$");
 
-    // Generate imperfect lines for each box edge
+    useEffect(() => {
+        // Dynamically update dimensions
+        const updateDimensions = () => {
+            if (containerRef.current) {
+                setWidth(containerRef.current.offsetWidth);
+                setHeight(containerRef.current.offsetHeight);
+            }
+        };
+        updateDimensions();
+        window.addEventListener("resize", updateDimensions);
+        return () => window.removeEventListener("resize", updateDimensions);
+    }, []);
+
+    // Generate sketchy border lines
     const generateLines = (x1, y1, x2, y2) => {
         const lines = [];
         for (let i = 0; i < lineCount; i++) {
-            const randomOffsetX1 = Math.random() * offset - offset / 2;
-            const randomOffsetY1 = Math.random() * offset - offset / 2;
-            const randomOffsetX2 = Math.random() * offset - offset / 2;
-            const randomOffsetY2 = Math.random() * offset - offset / 2;
+            const randomOffsetX1 = Math.random() * offset - offset / 4; // Less randomness
+            const randomOffsetY1 = Math.random() * offset - offset / 4; // Less randomness
+            const randomOffsetX2 = Math.random() * offset - offset / 4;
+            const randomOffsetY2 = Math.random() * offset - offset / 4;
 
             lines.push(
                 <line
@@ -107,37 +70,20 @@ const RoughBox = ({
         return lines;
     };
 
-    // Generate sketchy difficulty shapes
-    const generateDifficultyShapes = () => {
-        const shapes = [];
-        const spacing = shapeSize * 2;
-        const startX = width / 2 - ((difficulty - 1) * spacing) / 2;
-
-        for (let i = 0; i < difficulty; i++) {
-            for (let j = 0; j < lineCount; j++) {
-                const randomOffsetX = Math.random() * offset - offset / 2;
-                const randomOffsetY = Math.random() * offset - offset / 2;
-
-                shapes.push(
-                    <circle
-                        key={`${i}-${j}`}
-                        cx={startX + i * spacing + randomOffsetX}
-                        cy={height - 40 + randomOffsetY}
-                        r={shapeSize}
-                        fill="none"
-                        stroke="black"
-                        strokeWidth={strokeWidth}
-                        filter="url(#pencilEffect)"
-                    />
-                );
-            }
-        }
-        return shapes;
-    };
 
     return (
-        <Box position="relative" w="100%" h="100%" p="4">
-            <svg width={width} height={height}>
+        <Box
+            ref={containerRef}
+            position="relative"
+            w="100%"
+            h="80vh" // Adjusted panel height to 80vh
+            p="0"
+            bg="whiteAlpha.50"
+            rounded="md"
+            overflow="hidden"
+            borderWidth="0px"
+        >
+            <svg width={width} height={height} style={{ position: "absolute" }}>
                 {/* Define pencil texture filters */}
                 <defs>
                     <filter id="pencilEffect" x="-20%" y="-20%" width="140%" height="140%">
@@ -157,140 +103,97 @@ const RoughBox = ({
                     </filter>
                 </defs>
 
-                {/* Draw edges of the box */}
+                {/* Sketchy box edges */}
                 {generateLines(10, 10, width - 10, 10)} {/* Top edge */}
                 {generateLines(width - 10, 10, width - 10, height - 10)} {/* Right edge */}
                 {generateLines(width - 10, height - 10, 10, height - 10)} {/* Bottom edge */}
                 {generateLines(10, height - 10, 10, 10)} {/* Left edge */}
-
-                {/* Add text in the middle */}
-                <text
-                    x="50%"
-                    y="45%"
-                    textAnchor="middle"
-                    dominantBaseline="middle"
-                    fontFamily="'Caveat', cursive"
-                    fontSize={fontSize}
-                    fill="black"
-                    filter="url(#pencilEffect)"
-                >
-                    {text}
-                </text>
-
-                {/* Add smaller subtext below the title */}
-                <text
-                    x="50%"
-                    y="55%"
-                    textAnchor="middle"
-                    dominantBaseline="middle"
-                    fontFamily="'Caveat', cursive"
-                    fontSize={fontSize * 0.6}
-                    fill="black"
-                    filter="url(#pencilEffect)"
-                >
-                    {subtext}
-                </text>
-
-                {/* Add sketchy difficulty shapes */}
-                {generateDifficultyShapes()}
             </svg>
 
-            {/* Buttons for Presets */}
-            <ButtonGroup position="absolute" top="10px" left="10px" size="sm">
-                {Object.keys(PRESETS).map((presetName) => (
-                    <Button
-                        key={presetName}
-                        onClick={() => applyPreset(presetName)}
-                        variant="outline"
-                    >
-                        {PRESETS[presetName].name}
-                    </Button>
-                ))}
-                <Button onClick={() => setShowSliders((prev) => !prev)}>
-                    {showSliders ? "Hide Sliders" : "Show Sliders"}
-                </Button>
-            </ButtonGroup>
-
-            {/* Sliders for customization */}
-            {showSliders && (
-                <VStack
-                    position="absolute"
-                    top="50px"
-                    left="10px"
-                    bg="white"
-                    p="4"
-                    spacing="4"
-                    rounded="md"
-                    shadow="md"
-                    borderWidth="1px"
+            {/* Highlighted Title */}
+            <Box
+                position="absolute"
+                top="15%"
+                left="50%"
+                transform="translate(-50%, -50%)"
+                textAlign="center"
+            >
+                <RoughNotation
+                    type="highlight"
+                    color="rgba(255, 255, 0, 0.2)"
+                    show={showAnnotations}
                 >
-                    {/* Font Size Control */}
-                    <Box>
-                        <FormLabel fontSize="sm" mb={1}>
-                            Font Size
-                        </FormLabel>
-                        <Slider
-                            min={10}
-                            max={50}
-                            step={1}
-                            value={fontSize}
-                            onChange={(val) => setFontSize(val)}
-                        >
-                            <SliderTrack>
-                                <SliderFilledTrack />
-                            </SliderTrack>
-                            <SliderThumb />
-                        </Slider>
-                        <Text fontSize="xs" textAlign="right">
-                            {fontSize}px
-                        </Text>
-                    </Box>
+          <div
+              style={{
 
-                    {/* Shape Size Control */}
-                    <Box>
-                        <FormLabel fontSize="sm" mb={1}>
-                            Difficulty Shape Size
-                        </FormLabel>
-                        <Slider
-                            min={5}
-                            max={30}
-                            step={1}
-                            value={shapeSize}
-                            onChange={(val) => setShapeSize(val)}
-                        >
-                            <SliderTrack>
-                                <SliderFilledTrack />
-                            </SliderTrack>
-                            <SliderThumb />
-                        </Slider>
-                        <Text fontSize="xs" textAlign="right">
-                            {shapeSize}px
-                        </Text>
-                    </Box>
+                  fontSize: `${fontSize}px`,
+                  fontFamily: "'Amatic SC', cursive", // Ensure this
 
-                    {/* Line Count Control */}
-                    <Box>
-                        <FormLabel fontSize="sm" mb={1}>
-                            Line Count
-                        </FormLabel>
-                        <Slider
-                            min={1}
-                            max={10}
-                            step={1}
-                            value={lineCount}
-                            onChange={(val) => setLineCount(val)}
-                        >
-                            <SliderTrack>
-                                <SliderFilledTrack />
-                            </SliderTrack>
-                            <SliderThumb />
-                        </Slider>
-                        <Text fontSize="xs" textAlign="right">
-                            {lineCount}
-                        </Text>
-                    </Box>
-                </VStack>
-            )}
+                  color: "blackAlpha.300",
+              }}
+          >
+            {text}
+          </div>
+                </RoughNotation>
+            </Box>
+
+            {/* Subtext */}
+            <Box
+                position="absolute"
+                top="25%"
+                width={"100%"}
+                left="0%"
+                padding={8}
+              //  transform="translate(-50%, -50%)"
+
+            >
+
+          <span
+              style={{
+                  fontSize: `${fontSize * 0.6}px`,
+
+                  fontFamily: "'Amatic SC', cursive", // Ensure this
+                  color: "gray.200",
+              }}
+          >
+            {subtext}
+          </span>
+
+            </Box>
+
+            <Box
+                position="absolute"
+                top="75%"
+                left="50%"
+                transform="translate(-50%, -50%)"
+                textAlign="center"
+            >
+                <RoughNotation
+                    type="highlight"
+                    color="rgba(100, 255, 0, 0.2)"
+                    show={showAnnotations}
+                >
+                    <div
+                        style={{
+
+                            fontSize: `${fontSize*0.7}px`,
+                            fontFamily: "'Amatic SC', cursive", // Ensure this
+                            fontWeight: "bold",
+                            color: "blackAlpha.300",
+                        }}
+                    >
+                       $ $ $
+                    </div>
+                </RoughNotation>
+            </Box>
+
+
+
+
+
+
+
+
         </Box>
     );
 };
