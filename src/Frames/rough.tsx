@@ -1,20 +1,17 @@
 import React, { useState, useRef, useEffect } from "react";
 import {
-    Box,
-    Select,
-    FormLabel,
-    ButtonGroup,
-    Button,
+    Box, Button, Slider, SliderFilledTrack, SliderThumb, SliderTrack,
 } from "@chakra-ui/react";
 import { RoughNotation } from "react-rough-notation";
 import '@fontsource/amatic-sc';
 
-
 const RoughBox = ({
+                      color,
+                      heading,
+                      setHeading,
                       text = "New Title",
                       subtext = "Write here",
-                      difficulty = 1,
-                      cost = 2,
+                      steepness
                   }) => {
     const containerRef = useRef(null);
     const [width, setWidth] = useState(700); // Default width
@@ -28,8 +25,6 @@ const RoughBox = ({
     const [displacement, setDisplacement] = useState(1.5); // Reduced displacement
     const [fontSize, setFontSize] = useState(72);
     const [showAnnotations, setShowAnnotations] = useState(true);
-    const [difficultyRepresentation, setDifficultyRepresentation] = useState("!");
-    const [costRepresentation, setCostRepresentation] = useState("$");
 
     useEffect(() => {
         // Dynamically update dimensions
@@ -55,6 +50,7 @@ const RoughBox = ({
 
             lines.push(
                 <line
+                    rotate={'1 deg'}
                     key={`${x1}-${y1}-${x2}-${y2}-${i}`}
                     x1={x1 + randomOffsetX1}
                     y1={y1 + randomOffsetY1}
@@ -70,21 +66,21 @@ const RoughBox = ({
         return lines;
     };
 
-
     return (
         <Box
             ref={containerRef}
             position="relative"
             w="100%"
-            h="80vh" // Adjusted panel height to 80vh
+            h="70vh" // Adjusted panel height to 70vh
             p="0"
             bg="whiteAlpha.50"
             rounded="md"
             overflow="hidden"
             borderWidth="0px"
+            className={'vintage-map'}
         >
             <svg width={width} height={height} style={{ position: "absolute" }}>
-                {/* Define pencil texture filters */}
+
                 <defs>
                     <filter id="pencilEffect" x="-20%" y="-20%" width="140%" height="140%">
                         <feTurbulence
@@ -115,85 +111,71 @@ const RoughBox = ({
                 position="absolute"
                 top="15%"
                 left="50%"
-                transform="translate(-50%, -50%)"
-                textAlign="center"
-            >
-                <RoughNotation
-                    type="highlight"
-                    color="rgba(255, 255, 0, 0.2)"
-                    show={showAnnotations}
-                >
-          <div
-              style={{
-
-                  fontSize: `${fontSize}px`,
-                  fontFamily: "'Amatic SC', cursive", // Ensure this
-
-                  color: "blackAlpha.300",
-              }}
-          >
-            {text}
-          </div>
-                </RoughNotation>
-            </Box>
-
-            {/* Subtext */}
-            <Box
-                position="absolute"
-                top="25%"
                 width={"100%"}
-                left="0%"
-                padding={8}
-              //  transform="translate(-50%, -50%)"
-
+                transform="translate(-50%, -50%)"
+                textAlign="center"
+                fontSize={`${fontSize}px`}
+                color="whiteAlpha.900"
             >
-
-          <span
-              style={{
-                  fontSize: `${fontSize * 0.6}px`,
-
-                  fontFamily: "'Amatic SC', cursive", // Ensure this
-                  color: "gray.200",
-              }}
-          >
-            {subtext}
-          </span>
-
+                <RoughNotation
+                    type="highlight"
+                    color={color}
+                    iterations={4}
+                    show={showAnnotations}
+                >
+                    &nbsp;&nbsp;{text}&nbsp;&nbsp;
+                </RoughNotation>
             </Box>
 
+            {/* Highlighted Subtext */}
             <Box
                 position="absolute"
-                top="75%"
+                top="55%"
                 left="50%"
+                width={"80%"}
                 transform="translate(-50%, -50%)"
                 textAlign="center"
             >
                 <RoughNotation
                     type="highlight"
-                    color="rgba(100, 255, 0, 0.2)"
+                    color="rgba(255, 255, 255, 0.7)"
                     show={showAnnotations}
                 >
-                    <div
-                        style={{
-
-                            fontSize: `${fontSize*0.7}px`,
-                            fontFamily: "'Amatic SC', cursive", // Ensure this
-                            fontWeight: "bold",
-                            color: "blackAlpha.300",
-                        }}
-                    >
-                       $ $ $
-                    </div>
+                    <Box fontSize={`${fontSize / 2}px`} color="blackAlpha.600">
+                        {subtext}
+                    </Box>
                 </RoughNotation>
+
+
+
+                <Slider aria-label="custom-slider"
+                        min={-180}
+                        max={0}
+                        isReversed={false}
+
+                        step={0.001}
+                        value={heading} onChange={setHeading} >
+                {/* Slider track */}
+                <SliderTrack>
+                    <SliderFilledTrack bg={color} />
+                </SliderTrack>
+
+                {/* Custom slider thumb */}
+                <SliderThumb boxSize={4}>
+                    <Box
+                        color={color}
+                        as="span"
+                        fontSize="sm"
+
+                    >
+                        O
+                    </Box>
+                </SliderThumb>
+            </Slider>
+
+
+
             </Box>
-
-
-
-
-
-
-
-
         </Box>
     );
 };

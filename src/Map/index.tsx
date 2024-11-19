@@ -3,17 +3,7 @@ import { Loader } from "@googlemaps/js-api-loader";
 import { Box, Text } from "@chakra-ui/react";
 
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyCwmX_Ejr4hEyGDZfgBWPgLYzIqMhY1P3M";
-
-const DEFAULT_CENTER = { lat: 33.7905, lng: -122.3989, altitude: 400 };
-const DEFAULT_TILT = 45;
-const DEFAULT_HEADING = 25;
-const DEFAULT_RANGE = 2500;
-const DEFAULT_POLYLINE_COORDINATES = [
-    { lat: 45.99391331065768, lng: 7.762488122787081, altitude: 1050 },
-    { lat: 45.99391331065768, lng: 7.761488122787081, altitude: 1050 },
-    { lat: 45.99391331065768, lng: 7.763488122787081, altitude: 1050 },
-];
+const GOOGLE_MAPS_API_KEY = "AIzaSyCC9zrwzldyG6t5USByj9lPBIvozPHZwQ8";
 
 const createShaderInject = (longitude, latitude, edgeIntensityFactor, hatchDensity, smoothnessFactor, range) => `\
   vec2 sf = vec2(${longitude}, ${latitude});
@@ -60,15 +50,17 @@ const createShaderInject = (longitude, latitude, edgeIntensityFactor, hatchDensi
 `;
 
 const Map3DWithShaders = ({
-                              center = DEFAULT_CENTER,
-                              tilt = DEFAULT_TILT,
-                              heading = DEFAULT_HEADING,
-                              range = DEFAULT_RANGE,
-                              polylineCoordinates = DEFAULT_POLYLINE_COORDINATES,
+                             color,
+                              center ,
+                              tilt ,
+                              range = 3000,
+                              heading,
                               width = "100%",
                               height = "100%",
+                              route_polygon
                           }) => {
     const mapContainerRef = useRef<HTMLDivElement>(null);
+    const mapRef = useRef<HTMLElement | null>(null); // Ref for the map instance
     const [isLoading, setIsLoading] = useState(false);
     const [fadeOut, setFadeOut] = useState(false); // Con
 
@@ -80,7 +72,7 @@ const Map3DWithShaders = ({
                 0.1,
                 0.0,
                 1.2,
-                0.0010
+                0.001
             );
 
             const patchCanvas = (canvas) => {
@@ -146,6 +138,7 @@ const Map3DWithShaders = ({
 
                await loader.importLibrary("maps3d");
 
+               const polygonPoints = [];
                 //console.log(test.SteadyChangeEvent)
                 if (mapContainerRef.current) {
                     mapContainerRef.current.innerHTML = "";
@@ -153,31 +146,39 @@ const Map3DWithShaders = ({
                     const map = document.createElement("gmp-map-3d");
                     map.setAttribute("heading", heading.toString());
                     map.setAttribute("tilt", tilt.toString());
-                    map.setAttribute("min-tilt", "60");
-                    map.setAttribute("max-tilt", "60");
-                    map.setAttribute("range", range.toString());
+
+                    map.setAttribute("range", (range).toString());
                     map.setAttribute("default-labels-disabled", "true");
                     map.setAttribute("center", `${center.lat},${center.lng},${center.altitude || 400}`);
 
-                    const polyline = document.createElement("gmp-polyline-3d");
-                    polyline.setAttribute("altitude-mode", "relative-to-ground");
-                    polyline.setAttribute("stroke-color", "rgba(255,33,0,0.94)");
-                    polyline.setAttribute("stroke-width", "25");
+                    const polygon = document.createElement("gmp-polygon-3d");
+                    polygon.setAttribute("altitude-mode", "absolute");
+                    polygon.setAttribute("draws-occluded-segments", "true");
+                    polygon.setAttribute("z-index", "99999999");
+                    polygon.setAttribute("fill-color", color);
 
-                    customElements.whenDefined(polyline.localName).then(() => {
-                        (polyline as any).coordinates = polylineCoordinates;
+                    customElements.whenDefined(polygon.localName).then(() => {
+                        (polygon as any).outerCoordinates = route_polygon;
                     });
 
-                    map.appendChild(polyline);
+                     map.appendChild(polygon);
 
+                    // Listen for clicks on the map
+                    map.addEventListener("gmp-click", (event) => {
+                        const { lat, lng, altitude } = event.position; // Capture the latitude, longitude, and altitude
 
-                    // Add event listener to log camera state
-                    // Log camera state on change
-                    map.addEventListener("camera-changed", (event) => {
-                        console.log("Camera state changed:", event.detail.camera);
+                        // Add the clicked point to the polygon
+                        polygonPoints.push({ lat, lng, altitude : altitude + 0  });
+
+                        // use this to set points from clicking
+                        polygon.outerCoordinates = polygonPoints;
+
+                        console.log("Points :", polygonPoints);
                     });
+
 
                     mapContainerRef.current.appendChild(map);
+                    mapRef.current = map; // Store the map instance
                     window.gmpMap = map;
 
                     injectShaders();
@@ -189,7 +190,26 @@ const Map3DWithShaders = ({
         };
 
         initializeMap();
-    }, [center, tilt, heading, range, polylineCoordinates]);
+    }, []);
+
+    // Smoothly update camera using flyCameraTo
+    useEffect(() => {
+
+
+        if (mapRef?.current) {
+            mapRef?.current.flyCameraTo({
+                endCamera: {
+                    center: center,
+                    tilt: tilt,
+                    range: range,
+                    heading : heading
+                },
+               // durationMillis: 40,
+
+            });
+        }
+    }, [ tilt, range, center, heading]);
+
 
     return (
         <div
@@ -198,23 +218,27 @@ const Map3DWithShaders = ({
                 height,
                 border: "none",
                 position: "relative",
+                pointerEvents : "none"
             }}
         >
+
             <div ref={mapContainerRef} style={{ width: "100%", height: "100%" }} />
 
-            {isLoading && (
+            {false && (
                 <Box
                     position="absolute"
                     inset="0"
                     bg="whiteAlpha.800"
-                    backdropFilter="blur(20px)"
                     display="flex"
-                    alignItems="center"
-                    justifyContent="center"
-                    zIndex="10"
-                    opacity={fadeOut ? 0 : 1} // Control opacity for fade-out
-                    transition="opacity 1s ease-out" // Smooth fade-out animation
+
+                    zIndex="99000099"
+                    width={'100%'}
+                    height={'100%'}
+                    top={0}
+                    left={0}
+                    color={"black"}
                 >
+
 
                 </Box>
             )}
