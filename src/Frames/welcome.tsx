@@ -5,15 +5,7 @@ import {
 import { RoughNotation } from "react-rough-notation";
 import '@fontsource/amatic-sc';
 
-const RoughBox = ({
-                      color,
-                      heading,
-                      setHeading,
-                      text = "New Title",
-                      subtext = "Write here",
-                      interactive,
-                      setInteractive,
-                      steepness
+const Welcome = ({
                   }) => {
     const containerRef = useRef(null);
     const [width, setWidth] = useState(700); // Default width
@@ -73,7 +65,7 @@ const RoughBox = ({
             ref={containerRef}
             position="relative"
             w="100%"
-            h="70vh" // Adjusted panel height to 70vh
+            h="60vh" // Adjusted panel height to 70vh
             p="0"
             bg="whiteAlpha.50"
             rounded="md"
@@ -111,90 +103,47 @@ const RoughBox = ({
             {/* Highlighted Title */}
             <Box
                 position="absolute"
-                top="15%"
-                left="50%"
-                width={"100%"}
-                transform="translate(-50%, -50%)"
-                textAlign="center"
-                fontSize={`${fontSize}px`}
-                color="whiteAlpha.900"
-            >
-                <RoughNotation
-                    type="highlight"
-                    color={color}
-                    iterations={4}
-                    show={showAnnotations}
-                >
-                    &nbsp;&nbsp;{text}&nbsp;&nbsp;
-                </RoughNotation>
-            </Box>
-
-            {/* Highlighted Subtext */}
-            <Box
-                position="absolute"
-                top="55%"
+                top="35%"
                 left="50%"
                 width={"80%"}
-                transform="translate(-50%, -50%)"
-                textAlign="center"
+               transform="translate(-50%, -50%)"
+               textAlign="center"
+              //  fontSize={`${48}px`}
+                color="whiteAlpha.100"
             >
                 <RoughNotation
                     type="highlight"
-                    color="rgba(255, 255, 255, 0.7)"
-                    show={showAnnotations}
+                    color="lightgrey"
+                    iterations={2}
+                    show={true}
+                    //multiline={true}
                 >
-                    <Box fontSize={`${fontSize / 2}px`} color="blackAlpha.600">
-                        {subtext}
+                    <Box
+                        fontSize="72px" // Very large font size
+                        className={'vintage-map'}
+                     //   fontWeight="bold"
+                        color="white" // White text color
+                       // fontFamily="Amatic SC" // Ensure the Amatic SC font is applied
+                    >
+                        Welcome to Snowy Falls Slopes
                     </Box>
-
-                    <Box color="blackAlpha.600" transform={'translateY(-5px)'}>
-
-                        <Switch
-                            size={"sm"}
-                            value={interactive} onChange={() => {
-                            setInteractive(!interactive);
-                        }}/> Interactive?
-
-                    </Box>
-
-
-
-
                 </RoughNotation>
 
-
-
-
-                {false && <Slider aria-label="custom-slider"
-                        min={-180}
-                        max={0}
-                        isReversed={false}
-
-                        step={0.001}
-                        value={heading} onChange={setHeading} >
-                {/* Slider track */}
-                <SliderTrack>
-                    <SliderFilledTrack bg={color} />
-                </SliderTrack>
-
-                {/* Custom slider thumb */}
-                <SliderThumb boxSize={4}>
-                    <Box
-                        color={color}
-                        as="span"
-                        fontSize="sm"
-
-                    >
-                        O
-                    </Box>
-                </SliderThumb>
-            </Slider> }
-
+                <Box
+                    fontSize="48px" // Very large font size
+                    className={'vintage-map'}
+                    //   fontWeight="bold"
+                    color="blackAlpha.600" // White text color
+                    // fontFamily="Amatic SC" // Ensure the Amatic SC font is applied
+                >
+                   Explore our ski runs and pick your next trip.
+                </Box>
 
 
             </Box>
+
         </Box>
     );
 };
 
-export default RoughBox;
+export default Welcome;

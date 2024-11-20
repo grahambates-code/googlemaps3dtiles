@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Loader } from "@googlemaps/js-api-loader";
 import { Box, Text } from "@chakra-ui/react";
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyCC9zrwzldyG6t5USByj9lPBIvozPHZwQ8";
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
 const createShaderInject = (longitude, latitude, edgeIntensityFactor, hatchDensity, smoothnessFactor, range) => `\
   vec2 sf = vec2(${longitude}, ${latitude});
@@ -56,7 +56,8 @@ const Map3DWithShaders = ({
                               heading,
                               width = "100%",
                               height = "100%",
-                              route_polygon
+                              route_polygon,
+                              interactive
                           }) => {
     const mapContainerRef = useRef(null);
     const mapRef = useRef(null);
@@ -70,7 +71,7 @@ const Map3DWithShaders = ({
         let isPositive = true;
 
         intervalRef.current = setInterval(() => {
-            setLocalHeading(heading + (isPositive ? 2 : -2));
+            !interactive && setLocalHeading(heading + (isPositive ? 2 : -2));
             isPositive = !isPositive;
         }, 5000);
 
@@ -79,7 +80,7 @@ const Map3DWithShaders = ({
                 clearInterval(intervalRef.current);
             }
         };
-    }, [heading]);
+    }, [heading, interactive]);
 
     useEffect(() => {
         const injectShaders = () => {
@@ -217,7 +218,7 @@ const Map3DWithShaders = ({
                 height,
                 border: "none",
                 position: "relative",
-                pointerEvents: "none"
+                pointerEvents: interactive ? "all" : "none"
             }}
         >
             <div ref={mapContainerRef} style={{ width: "100%", height: "100%" }} />

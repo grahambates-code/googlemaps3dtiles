@@ -5,6 +5,7 @@ import Map3DWithShaders from "./Map";
 import FadeOutWrapper from "./Frames/main.tsx";
 import RoughBox from "./Frames/rough.tsx";
 import Altitude from "./Frames/altitude.tsx";
+import Welcome from "./Frames/welcome.tsx";
 
 const SkiRoute = ({
                       center,
@@ -19,6 +20,8 @@ const SkiRoute = ({
                       image,
                   }) => {
     const [heading, setHeading] = useState(heading_default);
+    const [interactive, setInteractive] = useState(false);
+
     const [direction, setDirection] = useState(1); // Tracks direction (+1 or -1)
 
     useEffect(() => {
@@ -54,9 +57,11 @@ const SkiRoute = ({
         <FadeOutWrapper fade={fade}>
             <Map3DWithShaders
                 color={color}
+                id={text}
                 center={center}
                 tilt={tilt}
                 heading={heading}
+                interactive={interactive}
                 route_polygon={route_polygon}
             />
 
@@ -75,6 +80,8 @@ const SkiRoute = ({
                     text={text}
                     steepness={steepness}
                     subtext={subtext}
+                    interactive={interactive}
+                    setInteractive={setInteractive}
                 />
             </Box>
 
@@ -94,6 +101,9 @@ const SkiRoute = ({
 
 export default () => (
     <Box width="100vw" height="200vh" pointerEvents="all">
+
+        <Welcome/>
+
         <SkiRoute
             center={{ lat: 45.9665162753398, lng: 7.717537790, altitude: 2989.0686 }}
             tilt={68.74738583894411}
