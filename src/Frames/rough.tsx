@@ -148,7 +148,7 @@ const RoughBox = ({
 
 
 
-                <Slider aria-label="custom-slider"
+                {false && <Slider aria-label="custom-slider"
                         min={-180}
                         max={0}
                         isReversed={false}
@@ -171,7 +171,7 @@ const RoughBox = ({
                         O
                     </Box>
                 </SliderThumb>
-            </Slider>
+            </Slider> }
 
 
 

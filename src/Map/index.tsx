@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from "react";
 import { Loader } from "@googlemaps/js-api-loader";
 import { Box, Text } from "@chakra-ui/react";
 
-
 const GOOGLE_MAPS_API_KEY = "AIzaSyCC9zrwzldyG6t5USByj9lPBIvozPHZwQ8";
 
 const createShaderInject = (longitude, latitude, edgeIntensityFactor, hatchDensity, smoothnessFactor, range) => `\
@@ -50,19 +49,37 @@ const createShaderInject = (longitude, latitude, edgeIntensityFactor, hatchDensi
 `;
 
 const Map3DWithShaders = ({
-                             color,
-                              center ,
-                              tilt ,
+                              color,
+                              center,
+                              tilt,
                               range = 3000,
                               heading,
                               width = "100%",
                               height = "100%",
                               route_polygon
                           }) => {
-    const mapContainerRef = useRef<HTMLDivElement>(null);
-    const mapRef = useRef<HTMLElement | null>(null); // Ref for the map instance
+    const mapContainerRef = useRef(null);
+    const mapRef = useRef(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [fadeOut, setFadeOut] = useState(false); // Con
+    const [fadeOut, setFadeOut] = useState(false);
+    const [localHeading, setLocalHeading] = useState(heading);
+    const intervalRef = useRef(null);
+
+    // Add oscillating effect for heading
+    useEffect(() => {
+        let isPositive = true;
+
+        intervalRef.current = setInterval(() => {
+            setLocalHeading(heading + (isPositive ? 2 : -2));
+            isPositive = !isPositive;
+        }, 5000);
+
+        return () => {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+            }
+        };
+    }, [heading]);
 
     useEffect(() => {
         const injectShaders = () => {
@@ -107,13 +124,10 @@ const Map3DWithShaders = ({
                     .find((value) => value && value.getContext);
                 if (canvas) patchCanvas(canvas);
 
-
-                // Simulate map load completion
                 setTimeout(() => {
-                    setFadeOut(true); // Start fade-out animation
-                    setTimeout(() => setIsLoading(false), 1000); // Remove the overlay after 1 second
-                }, 2000); // Simulated map load time
-
+                    setFadeOut(true);
+                    setTimeout(() => setIsLoading(false), 1000);
+                }, 2000);
             };
 
             const originalAttachShadow = HTMLElement.prototype.attachShadow;
@@ -135,19 +149,16 @@ const Map3DWithShaders = ({
             });
 
             try {
+                await loader.importLibrary("maps3d");
 
-               await loader.importLibrary("maps3d");
-
-               const polygonPoints = [];
-                //console.log(test.SteadyChangeEvent)
+                const polygonPoints = [];
                 if (mapContainerRef.current) {
                     mapContainerRef.current.innerHTML = "";
 
                     const map = document.createElement("gmp-map-3d");
-                    map.setAttribute("heading", heading.toString());
+                    map.setAttribute("heading", localHeading.toString());
                     map.setAttribute("tilt", tilt.toString());
-
-                    map.setAttribute("range", (range).toString());
+                    map.setAttribute("range", range.toString());
                     map.setAttribute("default-labels-disabled", "true");
                     map.setAttribute("center", `${center.lat},${center.lng},${center.altitude || 400}`);
 
@@ -158,27 +169,20 @@ const Map3DWithShaders = ({
                     polygon.setAttribute("fill-color", color);
 
                     customElements.whenDefined(polygon.localName).then(() => {
-                        (polygon as any).outerCoordinates = route_polygon;
+                        polygon.outerCoordinates = route_polygon;
                     });
 
-                     map.appendChild(polygon);
+                    map.appendChild(polygon);
 
-                    // Listen for clicks on the map
                     map.addEventListener("gmp-click", (event) => {
-                        const { lat, lng, altitude } = event.position; // Capture the latitude, longitude, and altitude
-
-                        // Add the clicked point to the polygon
-                        polygonPoints.push({ lat, lng, altitude : altitude + 0  });
-
-                        // use this to set points from clicking
+                        const { lat, lng, altitude } = event.position;
+                        polygonPoints.push({ lat, lng, altitude: altitude + 0 });
                         polygon.outerCoordinates = polygonPoints;
-
                         console.log("Points :", polygonPoints);
                     });
 
-
                     mapContainerRef.current.appendChild(map);
-                    mapRef.current = map; // Store the map instance
+                    mapRef.current = map;
                     window.gmpMap = map;
 
                     injectShaders();
@@ -192,24 +196,19 @@ const Map3DWithShaders = ({
         initializeMap();
     }, []);
 
-    // Smoothly update camera using flyCameraTo
     useEffect(() => {
-
-
         if (mapRef?.current) {
             mapRef?.current.flyCameraTo({
                 endCamera: {
                     center: center,
                     tilt: tilt,
                     range: range,
-                    heading : heading
+                    heading: localHeading
                 },
-               // durationMillis: 40,
-
+                durationMillis: 5000, // Make sure the animation duration matches the interval
             });
         }
-    }, [ tilt, range, center, heading]);
-
+    }, [tilt, range, center, localHeading]);
 
     return (
         <div
@@ -218,10 +217,9 @@ const Map3DWithShaders = ({
                 height,
                 border: "none",
                 position: "relative",
-                pointerEvents : "none"
+                pointerEvents: "none"
             }}
         >
-
             <div ref={mapContainerRef} style={{ width: "100%", height: "100%" }} />
 
             {false && (
@@ -230,7 +228,6 @@ const Map3DWithShaders = ({
                     inset="0"
                     bg="whiteAlpha.800"
                     display="flex"
-
                     zIndex="99000099"
                     width={'100%'}
                     height={'100%'}
@@ -238,8 +235,6 @@ const Map3DWithShaders = ({
                     left={0}
                     color={"black"}
                 >
-
-
                 </Box>
             )}
         </div>
