@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import  { useRef } from "react";
 import { Box } from "@chakra-ui/react";
 import * as d3 from "d3";
 import { RoughNotation } from "react-rough-notation";
@@ -9,7 +9,6 @@ const SkiRunMap = ({
                        color,
                        steepness = 1,
                        image,
-                       photoEffect = "tornEdge", // Options: 'polaroid', 'maskingTape', 'tornEdge'
                    }) => {
     const containerRef = useRef(null);
 

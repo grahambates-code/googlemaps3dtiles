@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import  { useState } from "react";
 import { Box  } from "@chakra-ui/react";
 
 const FadeOutWrapper = ({ fade, children, height = "100%" }) => {
-    const [fadeWidth, setFadeWidth] = useState(100); // Default fade width in %
+    const [fadeWidth] = useState(100); // Default fade width in %
 
     return (
         <Box position="relative" width="100%" height={height} overflow="hidden">

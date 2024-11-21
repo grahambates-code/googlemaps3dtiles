@@ -13,7 +13,6 @@ export default defineConfig({
   server: {
     host: true, // Allows access from external networks
     port: 5173,
-    https: false, // Optional: Change to true if needed
   },
   base: '/googlemaps3dtiles/', // Replace with your repository name
 });

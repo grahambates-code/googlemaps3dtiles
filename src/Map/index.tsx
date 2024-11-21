@@ -1,10 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Loader } from "@googlemaps/js-api-loader";
-import { Box, Text } from "@chakra-ui/react";
+import { Box } from "@chakra-ui/react";
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
-const createShaderInject = (longitude, latitude, edgeIntensityFactor, hatchDensity, smoothnessFactor, range) => `\
+const createShaderInject = (longitude, latitude, edgeIntensityFactor,  smoothnessFactor, range) => `\
   vec2 sf = vec2(${longitude}, ${latitude});
   vec2 polar = 3.141592653589793 * sf / 180.0;
   float R = 1.0;
@@ -61,8 +61,6 @@ const Map3DWithShaders = ({
                           }) => {
     const mapContainerRef = useRef(null);
     const mapRef = useRef(null);
-    const [isLoading, setIsLoading] = useState(false);
-    const [fadeOut, setFadeOut] = useState(false);
     const [localHeading, setLocalHeading] = useState(heading);
     const intervalRef = useRef(null);
 
@@ -90,7 +88,6 @@ const Map3DWithShaders = ({
                 0.1,
                 0.0,
                 1.2,
-                0.001
             );
 
             const patchCanvas = (canvas) => {
@@ -162,6 +159,7 @@ const Map3DWithShaders = ({
             });
 
             try {
+                // @ts-ignore
                 await loader.importLibrary("maps3d");
 
                 const polygonPoints = [];
@@ -182,27 +180,28 @@ const Map3DWithShaders = ({
                     polygon.setAttribute("fill-color", color);
 
                     customElements.whenDefined(polygon.localName).then(() => {
+                        // @ts-ignore
                         polygon.outerCoordinates = route_polygon;
                     });
 
                     map.appendChild(polygon);
 
                     map.addEventListener("gmp-click", (event) => {
+                        // @ts-ignore
                         const { lat, lng, altitude } = event.position;
                         polygonPoints.push({ lat, lng, altitude: altitude + 0 });
+                        // @ts-ignore
                         polygon.outerCoordinates = polygonPoints;
                         console.log("Points :", polygonPoints);
                     });
 
                     mapContainerRef.current.appendChild(map);
                     mapRef.current = map;
-                    window.gmpMap = map;
 
                     injectShaders();
                 }
             } catch (error) {
                 console.error("Failed to initialize the 3D map:", error);
-                setIsLoading(false);
             }
         };
 

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import { useState, useRef } from "react";
 
 const SketchySlider = ({ value = 0, min = 0, max = 180, onChange }) => {
     const [sliderValue, setSliderValue] = useState(

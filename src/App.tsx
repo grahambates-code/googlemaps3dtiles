@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Box, Spacer } from '@chakra-ui/react';
 
 import Map3DWithShaders from "./Map";
@@ -57,7 +57,6 @@ const SkiRoute = ({
         <FadeOutWrapper fade={fade}>
             <Map3DWithShaders
                 color={color}
-                id={text}
                 center={center}
                 tilt={tilt}
                 heading={heading}
@@ -78,7 +77,6 @@ const SkiRoute = ({
                     setHeading={setHeading}
                     heading={heading}
                     text={text}
-                    steepness={steepness}
                     subtext={subtext}
                     interactive={interactive}
                     setInteractive={setInteractive}
@@ -108,7 +106,6 @@ export default () => (
             center={{ lat: 45.9665162753398, lng: 7.717537790, altitude: 2989.0686 }}
             tilt={68.74738583894411}
             heading_default={-150.16076475154642}
-            range={2644}
             color="rgba(82,165,50,0.68)"
             steepness={1}
             image="photos/green/1.png"
@@ -160,7 +157,6 @@ export default () => (
         <SkiRoute
             center={{ lat: 45.94303046105, lng: 7.7167154683, altitude: 3244.70997289666 }}
             tilt={68.28576336}
-            range={1522.92097135}
             heading_default={-134.799592807085562}
             color="rgba(0,0,255,0.4)"
             steepness={3}

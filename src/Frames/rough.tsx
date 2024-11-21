@@ -1,9 +1,8 @@
-import React, { useState, useRef, useEffect } from "react";
+import  { useState, useRef, useEffect } from "react";
 import {
-    Box, Button, Slider, SliderFilledTrack, SliderThumb, SliderTrack, Switch,
+    Box, Slider, SliderFilledTrack, SliderThumb, SliderTrack, Switch,
 } from "@chakra-ui/react";
 import { RoughNotation } from "react-rough-notation";
-import '@fontsource/amatic-sc';
 
 const RoughBox = ({
                       color,
@@ -12,21 +11,21 @@ const RoughBox = ({
                       text = "New Title",
                       subtext = "Write here",
                       interactive,
-                      setInteractive,
-                      steepness
+                      setInteractive
+
                   }) => {
     const containerRef = useRef(null);
     const [width, setWidth] = useState(700); // Default width
     const [height, setHeight] = useState(400); // Default height
 
-    const [lineCount, setLineCount] = useState(2);
-    const [offset, setOffset] = useState(6); // Reduced randomness
-    const [strokeWidth, setStrokeWidth] = useState(2);
-    const [opacity, setOpacity] = useState(0.3);
-    const [roughness, setRoughness] = useState(0.01); // Reduced noise roughness
-    const [displacement, setDisplacement] = useState(1.5); // Reduced displacement
-    const [fontSize, setFontSize] = useState(72);
-    const [showAnnotations, setShowAnnotations] = useState(true);
+    const [lineCount] = useState(2);
+    const [offset] = useState(6); // Reduced randomness
+    const [strokeWidth] = useState(2);
+    const [opacity] = useState(0.3);
+    const [roughness] = useState(0.01); // Reduced noise roughness
+    const [displacement] = useState(1.5); // Reduced displacement
+    const [fontSize] = useState(72);
+    const [showAnnotations] = useState(true);
 
     useEffect(() => {
         // Dynamically update dimensions
