@@ -1,0 +1,15 @@
+# .gitpod.yml
+
+image:
+  file: .gitpod.Dockerfile
+
+tasks:
+  - init: yarn install
+    command: yarn dev
+
+ports:
+  - port: 5173 # Default Vite dev server port
+    onOpen: open-preview
+  - port: 5174 # HMR WebSocket port for Vite
+    onOpen: ignore
+
