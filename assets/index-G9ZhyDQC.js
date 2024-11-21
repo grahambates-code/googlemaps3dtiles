@@ -25012,30 +25012,47 @@ const Map3DWithShaders = ({
         1e-3
       );
       const patchCanvas = (canvas) => {
-        if (!canvas || canvas._patched) return;
+        if (!canvas) {
+          console.error("No canvas found for patching.");
+          return;
+        }
+        if (canvas._patched) {
+          console.log("Canvas already patched:", canvas);
+          return;
+        }
+        console.log("Patching canvas:", canvas);
         const originalGetContext = canvas.getContext;
         canvas.getContext = function(type, options) {
           const ctx = originalGetContext.call(this, type, options);
           if (ctx) {
+            console.log("WebGL context obtained:", ctx);
             const originalShaderSource = ctx.shaderSource;
             ctx.shaderSource = function(shader, source) {
+              console.log("Original Shader Source:", source);
               if (source.includes("gl_Position")) {
+                console.log("Skipping modification for 'gl_Position'.");
                 return originalShaderSource.call(this, shader, source);
               }
               let modifiedSource = source;
               if (source.includes("computeInscatter") && source.includes("FragColor")) {
                 modifiedSource = source.slice(0, -1) + inject + "}";
+                console.log("Modified Shader Source:", modifiedSource);
               }
               return originalShaderSource.call(this, shader, modifiedSource);
             };
             ctx._isPatched = true;
+          } else {
+            console.error("Failed to obtain WebGL context.");
           }
           return ctx;
         };
         canvas._patched = true;
       };
       const findCanvas = (element) => {
-        if (!element) return null;
+        if (!element) {
+          console.error("No element provided for canvas search.");
+          return null;
+        }
         const visited = /* @__PURE__ */ new Set();
         const candidates = [];
         const scanObject = (obj) => {
@@ -25044,6 +25061,7 @@ const Map3DWithShaders = ({
           Object.keys(obj).forEach((key) => {
             const value = obj[key];
             if (value && typeof value.getContext === "function") {
+              console.log("Canvas candidate found:", value);
               candidates.push(value);
             } else if (typeof value === "object" && value !== null) {
               scanObject(value);
@@ -25051,13 +25069,22 @@ const Map3DWithShaders = ({
           });
         };
         scanObject(element);
+        if (candidates.length === 0) {
+          console.warn("No canvas candidates found.");
+        }
         return candidates[0] || null;
       };
       const originalAttachShadow = HTMLElement.prototype.attachShadow;
       HTMLElement.prototype.attachShadow = function(options) {
+        console.log("attachShadow called for:", this);
         const shadowRoot = originalAttachShadow.call(this, options);
         const canvas = findCanvas(this);
-        if (canvas) patchCanvas(canvas);
+        if (canvas) {
+          console.log("Canvas found in attachShadow:", canvas);
+          patchCanvas(canvas);
+        } else {
+          console.warn("No canvas found in attachShadow.");
+        }
         return shadowRoot;
       };
       return () => {
