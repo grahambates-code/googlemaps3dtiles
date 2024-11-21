@@ -24930,7 +24930,7 @@ class Loader {
   }
 }
 const GOOGLE_MAPS_API_KEY = "AIzaSyCC9zrwzldyG6t5USByj9lPBIvozPHZwQ8";
-const createShaderInject = (longitude, latitude, edgeIntensityFactor, hatchDensity, smoothnessFactor, range) => `  vec2 sf = vec2(${longitude}, ${latitude});
+const createShaderInject = (longitude, latitude, edgeIntensityFactor, smoothnessFactor, range) => `  vec2 sf = vec2(${longitude}, ${latitude});
   vec2 polar = 3.141592653589793 * sf / 180.0;
   float R = 1.0;
   vec3 xyz = vec3(
@@ -24985,8 +24985,6 @@ const Map3DWithShaders = ({
 }) => {
   const mapContainerRef = reactExports.useRef(null);
   const mapRef = reactExports.useRef(null);
-  const [isLoading, setIsLoading] = reactExports.useState(false);
-  const [fadeOut, setFadeOut] = reactExports.useState(false);
   const [localHeading, setLocalHeading] = reactExports.useState(heading);
   const intervalRef = reactExports.useRef(null);
   reactExports.useEffect(() => {
@@ -25008,51 +25006,33 @@ const Map3DWithShaders = ({
         center.lat,
         0.1,
         0,
-        1.2,
-        1e-3
+        1.2
       );
       const patchCanvas = (canvas) => {
-        if (!canvas) {
-          console.error("No canvas found for patching.");
-          return;
-        }
-        if (canvas._patched) {
-          console.log("Canvas already patched:", canvas);
-          return;
-        }
-        console.log("Patching canvas:", canvas);
+        if (!canvas || canvas._patched) return;
         const originalGetContext = canvas.getContext;
         canvas.getContext = function(type, options) {
           const ctx = originalGetContext.call(this, type, options);
           if (ctx) {
-            console.log("WebGL context obtained:", ctx);
             const originalShaderSource = ctx.shaderSource;
             ctx.shaderSource = function(shader, source) {
-              console.log("Original Shader Source:", source);
               if (source.includes("gl_Position")) {
-                console.log("Skipping modification for 'gl_Position'.");
                 return originalShaderSource.call(this, shader, source);
               }
               let modifiedSource = source;
               if (source.includes("computeInscatter") && source.includes("FragColor")) {
                 modifiedSource = source.slice(0, -1) + inject + "}";
-                console.log("Modified Shader Source:", modifiedSource);
               }
               return originalShaderSource.call(this, shader, modifiedSource);
             };
             ctx._isPatched = true;
-          } else {
-            console.error("Failed to obtain WebGL context.");
           }
           return ctx;
         };
         canvas._patched = true;
       };
       const findCanvas = (element) => {
-        if (!element) {
-          console.error("No element provided for canvas search.");
-          return null;
-        }
+        if (!element) return null;
         const visited = /* @__PURE__ */ new Set();
         const candidates = [];
         const scanObject = (obj) => {
@@ -25061,7 +25041,6 @@ const Map3DWithShaders = ({
           Object.keys(obj).forEach((key) => {
             const value = obj[key];
             if (value && typeof value.getContext === "function") {
-              console.log("Canvas candidate found:", value);
               candidates.push(value);
             } else if (typeof value === "object" && value !== null) {
               scanObject(value);
@@ -25069,22 +25048,13 @@ const Map3DWithShaders = ({
           });
         };
         scanObject(element);
-        if (candidates.length === 0) {
-          console.warn("No canvas candidates found.");
-        }
         return candidates[0] || null;
       };
       const originalAttachShadow = HTMLElement.prototype.attachShadow;
       HTMLElement.prototype.attachShadow = function(options) {
-        console.log("attachShadow called for:", this);
         const shadowRoot = originalAttachShadow.call(this, options);
         const canvas = findCanvas(this);
-        if (canvas) {
-          console.log("Canvas found in attachShadow:", canvas);
-          patchCanvas(canvas);
-        } else {
-          console.warn("No canvas found in attachShadow.");
-        }
+        if (canvas) patchCanvas(canvas);
         return shadowRoot;
       };
       return () => {
@@ -25124,12 +25094,10 @@ const Map3DWithShaders = ({
           });
           mapContainerRef.current.appendChild(map2);
           mapRef.current = map2;
-          window.gmpMap = map2;
           injectShaders();
         }
       } catch (error) {
         console.error("Failed to initialize the 3D map:", error);
-        setIsLoading(false);
       }
     };
     initializeMap();
@@ -25166,7 +25134,7 @@ const Map3DWithShaders = ({
   );
 };
 const FadeOutWrapper = ({ fade, children: children2, height = "100%" }) => {
-  const [fadeWidth, setFadeWidth] = reactExports.useState(100);
+  const [fadeWidth] = reactExports.useState(100);
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(Box, { position: "relative", width: "100%", height, overflow: "hidden", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(Box, { position: "relative", width: "100%", height: "100%", children: children2 }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -25688,20 +25656,19 @@ const RoughBox = ({
   text = "New Title",
   subtext = "Write here",
   interactive,
-  setInteractive,
-  steepness
+  setInteractive
 }) => {
   const containerRef = reactExports.useRef(null);
   const [width, setWidth] = reactExports.useState(700);
   const [height, setHeight] = reactExports.useState(400);
-  const [lineCount, setLineCount] = reactExports.useState(2);
-  const [offset, setOffset] = reactExports.useState(6);
-  const [strokeWidth, setStrokeWidth] = reactExports.useState(2);
-  const [opacity, setOpacity] = reactExports.useState(0.3);
-  const [roughness, setRoughness] = reactExports.useState(0.01);
-  const [displacement, setDisplacement] = reactExports.useState(1.5);
-  const [fontSize, setFontSize] = reactExports.useState(72);
-  const [showAnnotations, setShowAnnotations] = reactExports.useState(true);
+  const [lineCount] = reactExports.useState(2);
+  const [offset] = reactExports.useState(6);
+  const [strokeWidth] = reactExports.useState(2);
+  const [opacity] = reactExports.useState(0.3);
+  const [roughness] = reactExports.useState(0.01);
+  const [displacement] = reactExports.useState(1.5);
+  const [fontSize] = reactExports.useState(72);
+  const [showAnnotations] = reactExports.useState(true);
   reactExports.useEffect(() => {
     const updateDimensions = () => {
       if (containerRef.current) {
@@ -28671,9 +28638,7 @@ const SkiRunMap = ({
   text = "Ski Run Altitude Map",
   color: color2,
   steepness = 1,
-  image,
-  photoEffect = "tornEdge"
-  // Options: 'polaroid', 'maskingTape', 'tornEdge'
+  image
 }) => {
   const containerRef = reactExports.useRef(null);
   const generateAltitudeData = (steepness2) => {
@@ -28824,14 +28789,12 @@ const Welcome = ({}) => {
   const containerRef = reactExports.useRef(null);
   const [width, setWidth] = reactExports.useState(700);
   const [height, setHeight] = reactExports.useState(400);
-  const [lineCount, setLineCount] = reactExports.useState(2);
-  const [offset, setOffset] = reactExports.useState(6);
-  const [strokeWidth, setStrokeWidth] = reactExports.useState(2);
-  const [opacity, setOpacity] = reactExports.useState(0.3);
-  const [roughness, setRoughness] = reactExports.useState(0.01);
-  const [displacement, setDisplacement] = reactExports.useState(1.5);
-  const [fontSize, setFontSize] = reactExports.useState(72);
-  const [showAnnotations, setShowAnnotations] = reactExports.useState(true);
+  const [lineCount] = reactExports.useState(2);
+  const [offset] = reactExports.useState(6);
+  const [strokeWidth] = reactExports.useState(2);
+  const [opacity] = reactExports.useState(0.3);
+  const [roughness] = reactExports.useState(0.01);
+  const [displacement] = reactExports.useState(1.5);
   reactExports.useEffect(() => {
     const updateDimensions = () => {
       if (containerRef.current) {
@@ -29002,7 +28965,6 @@ const SkiRoute = ({
       Map3DWithShaders,
       {
         color: color2,
-        id: text,
         center,
         tilt,
         heading,
@@ -29026,7 +28988,6 @@ const SkiRoute = ({
             setHeading,
             heading,
             text,
-            steepness,
             subtext,
             interactive,
             setInteractive
@@ -29056,7 +29017,6 @@ const App = () => /* @__PURE__ */ jsxRuntimeExports.jsxs(Box, { width: "100vw", 
       center: { lat: 45.9665162753398, lng: 7.71753779, altitude: 2989.0686 },
       tilt: 68.74738583894411,
       heading_default: -150.16076475154642,
-      range: 2644,
       color: "rgba(82,165,50,0.68)",
       steepness: 1,
       image: "photos/green/1.png",
@@ -29110,7 +29070,6 @@ const App = () => /* @__PURE__ */ jsxRuntimeExports.jsxs(Box, { width: "100vw", 
     {
       center: { lat: 45.94303046105, lng: 7.7167154683, altitude: 3244.70997289666 },
       tilt: 68.28576336,
-      range: 1522.92097135,
       heading_default: -134.79959280708556,
       color: "rgba(0,0,255,0.4)",
       steepness: 3,
