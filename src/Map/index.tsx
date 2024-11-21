@@ -119,22 +119,34 @@ const Map3DWithShaders = ({
                 canvas._patched = true;
             };
 
-            const findAndPatchCanvas = (element) => {
-                const canvas = Object.keys(element)
-                    .map((key) => element[key])
-                    .find((value) => value && value.getContext);
-                if (canvas) patchCanvas(canvas);
+            const findCanvas = (element) => {
+                if (!element) return null;
+                const visited = new Set();
+                const candidates = [];
 
-                setTimeout(() => {
-                    setFadeOut(true);
-                    setTimeout(() => setIsLoading(false), 1000);
-                }, 2000);
+                const scanObject = (obj) => {
+                    if (!obj || typeof obj !== "object" || visited.has(obj)) return;
+                    visited.add(obj);
+
+                    Object.keys(obj).forEach((key) => {
+                        const value = obj[key];
+                        if (value && typeof value.getContext === "function") {
+                            candidates.push(value);
+                        } else if (typeof value === "object" && value !== null) {
+                            scanObject(value);
+                        }
+                    });
+                };
+
+                scanObject(element);
+                return candidates[0] || null;
             };
 
             const originalAttachShadow = HTMLElement.prototype.attachShadow;
             HTMLElement.prototype.attachShadow = function (options) {
                 const shadowRoot = originalAttachShadow.call(this, options);
-                findAndPatchCanvas(this);
+                const canvas = findCanvas(this);
+                if (canvas) patchCanvas(canvas);
                 return shadowRoot;
             };
 
