@@ -7,6 +7,9 @@ export default defineConfig({
   build: {
     minify: false, // Disable minification for easier debugging
   },
+  esbuild: {
+    logOverride: { 'tsconfig.json': 'silent' },
+  },
   server: {
     host: true, // Allows access from external networks
     port: 5173,
